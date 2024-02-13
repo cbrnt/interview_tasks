@@ -1,0 +1,15 @@
+[Unit]
+Description=Prometheus Server
+Documentation=https://prometheus.io/docs/introduction/overview/
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Restart=on-failure
+
+ExecStart=~/prometheus/prometheus --storage.tsdb.path=/var/lib/prometheus/data/ --web.external-url=http://example.ru:9090
+ExecReload=kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
