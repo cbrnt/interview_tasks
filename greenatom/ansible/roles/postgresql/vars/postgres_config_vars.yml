@@ -1,0 +1,12 @@
+---
+postgresql_version: "13"
+postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+postgresql_bin_path: "/usr/lib/postgresql/{{ postgresql_version }}/bin"
+postgresql_config_path: "/etc/postgresql/{{ postgresql_version }}/main"
+postgresql_daemon: "postgresql@{{ postgresql_version }}-main"
+postgresql_packages:
+  - postgresql
+  - postgresql-contrib
+  - libpq-dev
+postgresql_python_library: python3-psycopg2
+postgres_check_first_config: "{{ postgresql_data_dir }}/ansible_first_config.lock"

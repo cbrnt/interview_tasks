@@ -1,0 +1,78 @@
+---
+# Задаем значения переменных перед выполнением основных заданий
+
+# Политика применения изменений при обновлении конфигураций
+# `restarted` или `reloaded`
+postgresql_restarted_state: "restarted"
+
+postgresql_python_library: python-psycopg2
+postgresql_user: postgres
+postgresql_group: postgres
+
+# Методы аутентификации
+# `md5` или `scram-sha-256`
+postgresql_auth_method: "{{ ansible_fips  | ternary('scram-sha-256', 'md5') }}"
+
+postgresql_unix_socket_directories:
+  - /var/run/postgresql
+
+postgresql_service_state: started
+postgresql_service_enabled: true
+
+# Параметры, которые будут переданы в postgresql.conf. Здесь можно задавать основные настройки сервера БД
+postgresql_global_config_options:
+  - option: unix_socket_directories
+    value: '{{ postgresql_unix_socket_directories | join(",") }}'
+  - option: log_directory
+    value: 'log'
+  - option: shared_buffers
+    value: '256MB'
+
+# Записи для аутентификации по хосту pg_hba.conf. Пустит под системным пользоваетеля у, которого есть роль
+# Пустит, если запрос пришел с локалхоста
+postgresql_hba_entries:
+  - {type: local, database: all, user: postgres, auth_method: peer}
+  - {type: local, database: all, user: all, auth_method: peer}
+  - {type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: "{{ postgresql_auth_method }}"}
+  - {type: host, database: all, user: all, address: '::1/128', auth_method: "{{ postgresql_auth_method }}"}
+
+# Только для Debian. Задает кодировки в шаблон новых баз данных.
+postgresql_locales:
+  - 'ru_RU.UTF-8'
+
+# Создает базы данных.
+postgresql_databases: []
+# - name: exampledb # нужный, имя базы, остальное опционально
+#   lc_collate: # порядок сортировки строк
+#   lc_ctype: # классификация символов
+#   encoding: # кодировка
+#   template: # имя шаблона для создания новой базы
+#   login_host: # адрес для подключения к БД, по-умолчанию 'localhost'
+#   login_password: # пароль пользователя, под которым создавать
+#   login_user: # имя пользователя под которым создавать, по-умолчанию '{{ postgresql_user }}'
+#   login_unix_socket: # по-умолчанию postgresql_unix_socket_directories
+#   port: # порт для подключения к БД
+#   owner: # владелец, по-умолчанию postgresql_user
+#   state: # состояние, по-умолчанию 'present'
+    # tags: 
+    #   - postgres-configure
+
+# Создание пользователей
+postgresql_users: []
+# - name: postgres # нужен; имя пользователя, остальное опционально
+#   password: # пароль пользователя
+#   encrypted: # вид шифрования пароля, по-умолчанию пусто
+#   priv: # привилегии, по-умолчанию пусто
+#   role_attr_flags: # атрибуты роли, по-умолчанию пусто
+#   db: # привязка к базе, по-умолчанию пусто
+#   login_host: # адрес для подключения к БД, по-умолчанию 'localhost'
+#   login_password: # пароль пользователя, под которым создавать
+#   login_user: # имя пользователя под которым создавать, по-умолчанию '{{ postgresql_user }}'
+#   login_unix_socket: # по-умолчанию postgresql_unix_socket_directories
+#   port: # порт для подключения к БД
+#   state: # состояние, по-умолчанию 'present'
+    # tags: 
+    #   - postgres-configure
+
+# Не отображать данные пользователей
+# postgres_users_no_log: true

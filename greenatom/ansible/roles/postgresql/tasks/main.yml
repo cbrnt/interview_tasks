@@ -1,0 +1,8 @@
+---
+- import_tasks: variables.yml
+- import_tasks: installation.yml
+- import_tasks: initialize.yml
+- import_tasks: configure.yml
+- import_tasks: users.yml
+- import_tasks: databases.yml
+- import_tasks: users_props.yml

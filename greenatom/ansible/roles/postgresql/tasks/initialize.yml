@@ -1,0 +1,45 @@
+---
+# Предохранитель и маячок для первичной конфигурации
+- name: PostgreSQL check first configuration
+  stat:
+    path: "{{ postgres_check_first_config }}"
+  register: check_first_config
+  when: ansible_os_family == "Debian"
+  tags:
+    - postgres-configure
+
+# Задаем переменные окружения PostgreSQL
+- name: Set PostgreSQL environment variables.
+  template:
+    src: postgres.sh.j2
+    dest: /etc/profile.d/postgres.sh
+    mode: 0644
+  notify: restart postgresql
+  when: ansible_os_family == "Debian"
+  tags:
+    - postgres-configure
+
+# Действия при первичной конфигурации
+- name: PostgreSQL first configuration
+  block:
+    - name: Ensure PostgreSQL data directory exists.
+      file:
+        path: "{{ postgresql_data_dir }}"
+        owner: "{{ postgresql_user }}"
+        group: "{{ postgresql_group }}"
+        state: directory
+        mode: 0700
+    - name: PostgreSQL lock first configuration
+      file:
+        path: "{{ postgres_check_first_config }}"
+        state: touch
+      when: 
+        - ansible_os_family == "Debian"
+        - check_first_config.stat.exists == false
+      tags:
+        - postgres-configure
+  when:  
+    - ansible_os_family == "Debian"
+    - check_first_config.stat.exists == false
+  tags:
+    - postgres-configure

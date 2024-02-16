@@ -1,0 +1,48 @@
+---
+# Устанавливаем библиотеку Python для Ansible
+- name: Ensure PostgreSQL Python libraries are installed.
+  apt:
+    name: "{{ postgresql_python_library }}"
+    state: present
+  when: ansible_os_family == "Debian"
+  tags:
+    - postgres-configure
+
+# Устанавливаем пакеты PostgreSQL
+- name: Ensure PostgreSQL packages are installed.
+  apt:
+    name: "{{ postgresql_packages }}"
+    state: present
+  when: ansible_os_family == "Debian"
+  tags:
+    - postgres-configure
+
+# Устанавливаем локали для баз данных
+- name: Ensure all configured locales are present.
+  locale_gen: "name={{ item }} state=present"
+  with_items: "{{ postgresql_locales }}"
+  register: locale_gen_result
+  when: ansible_os_family == "Debian"
+  tags:
+    - postgres-configure
+
+# Перезапускаем PostgreSQL после установки локалей
+- name: Force-restart PostgreSQL after new locales are generated.
+  service:
+    name: "{{ postgresql_daemon }}"
+    state: restarted
+  when: 
+    - locale_gen_result.changed
+    - ansible_os_family == "Debian"
+  tags:
+    - postgres-configure
+
+# Включаем автозапуск сервиса PostgreSQL
+- name: Ensure PostgreSQL is started and enabled on boot.
+  service:
+    name: "{{ postgresql_daemon }}"
+    state: "{{ postgresql_service_state }}"
+    enabled: "{{ postgresql_service_enabled }}"
+  when: ansible_os_family == "Debian"
+  tags:
+    - postgres-configure

@@ -1,0 +1,10 @@
+---
+# Загружаем переменные Postgres
+- name: Include PostgreSQL variables
+  include_vars:
+    dir: vars
+    extensions:
+      - yml
+  when: ansible_os_family == "Debian"
+  tags:
+    - postgres-configure
