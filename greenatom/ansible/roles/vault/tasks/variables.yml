@@ -1,0 +1,10 @@
+---
+# Подгружаем переменные из vars
+- name: Include Vault variables
+  include_vars:
+    dir: vars
+    extensions:
+      - yml
+  when: ansible_os_family == "Debian"
+  tags:
+    - vault-secrets

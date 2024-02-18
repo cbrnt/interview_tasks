@@ -1,5 +1,15 @@
 node('ansible-agent-0') {
-    stage('Run ansible') {
-        sh 'ansible --version'
+    stage('Vault') {
+        withCredentials([[$class: 'VaultTokenCredentialBinding', credentialsId: 'Vault-Jenkins-app-role', vaultAddr: 'http://192.168.88.242:8200']]) {
+            sh 'echo TOKEN=$VAULT_TOKEN'
+            sh 'echo ADDR=$VAULT_ADDR'
+        }
+    }
+    stage('Ansible') {
+        sh """
+            sudo apt install python3-pip
+            pip3 install hvac
+            ansible-playbook main.yml -t vault-secrets -e "vault_url=$VAULT_ADDR vault_token=$VAULT_TOKEN" -vv
+        """
     }
 }
